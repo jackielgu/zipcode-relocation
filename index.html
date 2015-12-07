@@ -60,16 +60,26 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + radius + "," + radius + ")");
 var link = svg.append("g").selectAll(".link"),
     node = svg.append("g").selectAll(".node");
-d3.json("test.json", function(error, classes) {
+d3.json("reallyuse.json", function(error, classes) {
   if (error) throw error;
   var nodes = cluster.nodes(packageHierarchy(classes)),
       links = packageImports(nodes);
   link = link
       .data(bundle(links))
     .enter().append("path")
-      .each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+      .each(function(d) {
+       d.source = d[0], d.target = d[d.length - 1]; })
       .attr("class", "link")
-      .attr("d", line);
+      .attr("d", line)
+      .attr("stroke-width", function(d, i) {
+        console.log(d.source.freqs)
+
+        for (var i in d.source.freqs) {
+          return d.source.freqs[i]
+          // console.log(d.source.imports[i]);
+
+        }
+      });
   node = node
       .data(nodes.filter(function(n) { return !n.children; }))
     .enter().append("text")
@@ -88,7 +98,19 @@ function mouseovered(d) {
       .classed("link--target", function(l) { if (l.target === d) return l.source.source = true; })
       .classed("link--source", function(l) { if (l.source === d) return l.target.target = true; })
     .filter(function(l) { return l.target === d || l.source === d; })
-      .each(function() { this.parentNode.appendChild(this); });
+      .enter()
+      .append("path")
+      .each(function() { this.parentNode.appendChild(this); })
+            .attr("class", "link")
+      .attr("d", line)
+      .attr("stroke-width", function(d, i) {
+        console.log(d.source.freqs)
+
+        // return d.frequency;
+        for (var i in d.source.freqs) {
+          return d.source.freqs[i]
+        }
+      });
   node
       .classed("node--target", function(n) { return n.target; })
       .classed("node--source", function(n) { return n.source; });
@@ -127,15 +149,18 @@ function packageImports(nodes) {
   var map = {},
       imports = [];
   // Compute a map from name to node.
-  nodes.forEach(function(d) {
+  nodes.forEach(function(d,i) {
     map[d.name] = d;
   });
   // For each import, construct a link from the source to target node.
   nodes.forEach(function(d) {
-    if (d.imports) d.imports.forEach(function(i) {
-      imports.push({source: map[d.name], target: map[i]});
-    });
+    if (d.imports) {
+      d.imports.forEach(function(i) {
+        imports.push({source: map[d.name], target: map[i]});
+      });
+    }
   });
+  //console.log(imports)
   return imports;
 }
 </script>
