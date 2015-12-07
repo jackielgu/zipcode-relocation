@@ -9,8 +9,8 @@
   fill: #000;
 }
 .link {
-  stroke: steelblue;
-  stroke-opacity: .4;
+  stroke: #80c1ce;
+  stroke-opacity: .25;
   fill: none;
   pointer-events: none;
 }
@@ -20,21 +20,21 @@
   font-weight: 700;
 }
 .node--source {
-  fill: #2ca02c;
+  fill: #307182;
+  
 }
 .node--target {
-  fill: #d62728;
+  fill: #af2f30;
 }
 .link--source,
 .link--target {
   stroke-opacity: 1;
-  stroke-width: 2px;
 }
 .link--source {
-  stroke: #d62728;
+  stroke: #af2f30;
 }
 .link--target {
-  stroke: #2ca02c;
+  stroke: #307182;
 }
 </style>
 <body>
@@ -50,7 +50,7 @@ var cluster = d3.layout.cluster()
 var bundle = d3.layout.bundle();
 var line = d3.svg.line.radial()
     .interpolate("bundle")
-    .tension(.85)
+    .tension(.5)
     .radius(function(d) { return d.y; })
     .angle(function(d) { return d.x / 180 * Math.PI; });
 var svg = d3.select("body").append("svg")
@@ -72,12 +72,10 @@ d3.json("reallyuse.json", function(error, classes) {
       .attr("class", "link")
       .attr("d", line)
       .attr("stroke-width", function(d, i) {
-        console.log(d.source.freqs)
+        // console.log(d.source.freqs)
 
         for (var i in d.source.freqs) {
-          return d.source.freqs[i]
-          // console.log(d.source.imports[i]);
-
+          return 2*d.source.freqs[i]
         }
       });
   node = node
@@ -97,20 +95,15 @@ function mouseovered(d) {
   link
       .classed("link--target", function(l) { if (l.target === d) return l.source.source = true; })
       .classed("link--source", function(l) { if (l.source === d) return l.target.target = true; })
-    .filter(function(l) { return l.target === d || l.source === d; })
-      .enter()
-      .append("path")
-      .each(function() { this.parentNode.appendChild(this); })
-            .attr("class", "link")
-      .attr("d", line)
-      .attr("stroke-width", function(d, i) {
-        console.log(d.source.freqs)
-
-        // return d.frequency;
-        for (var i in d.source.freqs) {
-          return d.source.freqs[i]
+      .attr("stroke-width", function(l) {
+        for (var i in l.source.freqs) {
+          //console.log(d.source.freqs[i])
+          return 2*l.source.freqs[i]
         }
-      });
+      })
+      .filter(function(l) { return l.target === d || l.source === d; })
+      .each(function() { this.parentNode.appendChild(this); });
+
   node
       .classed("node--target", function(n) { return n.target; })
       .classed("node--source", function(n) { return n.source; });
